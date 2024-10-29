@@ -56,12 +56,7 @@ namespace Reportobello
         }
     }
 
-    // TODO: add env var API support (done)
-    // TODO: add template upload API support (done)
     // TODO: add get recent builds support
-    // TODO: add get template versions API support
-    // TODO: throw custom exception when type doesnt have expected attribute
-
     // TODO: add custom exceptions for API failures (ie, template not found)
     public class ReportobelloApi
     {
@@ -205,11 +200,11 @@ namespace Reportobello
             throw new NotImplementedException();
         }
 
-        public async Task<Uri> RunReport<T>(T data, bool preview = false)
+        public async Task<Uri> RunReport<T>(T data)
         {
             var attr = data.GetType().GetCustomAttribute<TemplateNameAttribute>();
 
-            return await RunReport(attr.Name, data, preview);
+            return await RunReport(attr.Name, data);
         }
 
         private class BuildTemplatePayload
@@ -218,15 +213,9 @@ namespace Reportobello
             public string content_type { get; set; } = "application/json";
         }
 
-        // TODO: we probably want to move the preview flag to a custom object
-        public async Task<Uri> RunReport(string templateName, object data, bool preview = false)
+        public async Task<Uri> RunReport(string templateName, object data)
         {
             var queryParams = new Dictionary<string, string> { { "justUrl", "" } };
-
-            if (preview)
-            {
-                queryParams["preview"] = "";
-            }
 
             var url = $"/api/v1/template/{Uri.EscapeDataString(templateName)}/build?{QueryStringBuilder(queryParams)}";
 
@@ -244,14 +233,14 @@ namespace Reportobello
             return new Uri(output);
         }
 
-        public Uri RunReportSync<T>(T data, bool preview = false)
+        public Uri RunReportSync<T>(T data)
         {
-            return Task.Run(() => RunReport(data, preview)).Result;
+            return Task.Run(() => RunReport(data)).Result;
         }
 
-        public Uri RunReportSync(string templateName, object data, bool preview = false)
+        public Uri RunReportSync(string templateName, object data)
         {
-            return Task.Run(() => RunReport(templateName, data, preview)).Result;
+            return Task.Run(() => RunReport(templateName, data)).Result;
         }
 
         private StringContent JsonContent(string data)
